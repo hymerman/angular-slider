@@ -3,6 +3,12 @@ angular-slider
 
 Slider directive implementation for AngularJS, without jQuery dependencies. Requires AngularJS v1.1.4 or higher (optional isolate scope bindings support).
 
+#### Note from brianmcd: 
+The code in the original repo doesn't work when the directive is used in a transcluded scope.
+This is a hacked version that works by removing the usage of `compile` in the directive.
+This only works with range sliders, since that's all I need.
+
+
 ### Example:
 
     <ul>
