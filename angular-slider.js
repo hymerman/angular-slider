@@ -280,7 +280,8 @@
           w = watchables[_i];
           scope.$watch(w, updateDOM);
         }
-        return window.addEventListener("resize", updateDOM);
+        window.addEventListener("resize", updateDOM);
+        return scope.$on('edit-section-visible', updateDOM);
       }
     };
   };

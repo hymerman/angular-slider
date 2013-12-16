@@ -201,6 +201,7 @@ sliderDirective = ($timeout) ->
         $timeout updateDOM
         scope.$watch w, updateDOM for w in watchables
         window.addEventListener "resize", updateDOM
+        scope.$on 'edit-section-visible', updateDOM
 
 qualifiedDirectiveDefinition = [
     '$timeout'
