@@ -85,6 +85,7 @@
         step: '@',
         precision: '@',
         translate: '&',
+        afterChange: '&',
         ngModel: '=?',
         ngModelLow: '=?',
         ngModelHigh: '=?'
@@ -216,7 +217,10 @@
             onEnd = function() {
               pointer.removeClass('active');
               ngDocument.unbind(events.move);
-              return ngDocument.unbind(events.end);
+              ngDocument.unbind(events.end);
+              if (scope.afterChange) {
+                return scope.afterChange();
+              }
             };
             onMove = function(event) {
               var eventX, newOffset, newPercent, newValue;

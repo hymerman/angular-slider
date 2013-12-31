@@ -44,6 +44,7 @@ sliderDirective = ($timeout) ->
         step:        '@'
         precision:   '@'
         translate:   '&'
+        afterChange: '&'
         ngModel:     '=?'
         ngModelLow:  '=?'
         ngModelHigh: '=?'
@@ -158,6 +159,8 @@ sliderDirective = ($timeout) ->
                     pointer.removeClass 'active'
                     ngDocument.unbind events.move
                     ngDocument.unbind events.end
+                    if scope.afterChange
+                      scope.afterChange()
                 onMove = (event) ->
                     eventX = event.clientX || event.touches[0].clientX
                     newOffset = eventX - element[0].getBoundingClientRect().left - pointerHalfWidth
