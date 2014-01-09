@@ -83,7 +83,7 @@ sliderDirective = ($timeout) ->
             # roundStep the initial score values
             scope.precision ?= 0
             scope.step ?= 1
-            scope[value] = parseInt(roundStep(parseFloat(scope[value]), parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor)), 10) for value in watchables
+            scope[value] = roundStep(parseFloat(scope[value]), parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor)) for value in watchables
             scope.diff = roundStep(scope.ngModelHigh - scope.ngModelLow, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor))
             
             # Commonly used measurements

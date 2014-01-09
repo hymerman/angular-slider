@@ -132,7 +132,7 @@
           }
           for (_i = 0, _len = watchables.length; _i < _len; _i++) {
             value = watchables[_i];
-            scope[value] = parseInt(roundStep(parseFloat(scope[value]), parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor)), 10);
+            scope[value] = roundStep(parseFloat(scope[value]), parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor));
           }
           scope.diff = roundStep(scope.ngModelHigh - scope.ngModelLow, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor));
           pointerHalfWidth = halfWidth(minPtr);
