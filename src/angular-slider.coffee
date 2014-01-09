@@ -2,6 +2,7 @@
 
 MODULE_NAME = 'uiSlider'
 SLIDER_TAG  = 'slider'
+SLIDER_RANGE_TAG  = 'sliderRange'
 
 # HELPER FUNCTIONS
 
@@ -46,6 +47,123 @@ sliderDirective = ($timeout) ->
         translate:   '&'
         afterChange: '&'
         ngModel:     '=?'
+    template: '<span class="bar"></span>
+               <span class="pointer"></span>
+               <span class="bubble limit">{{ translate({value: floor}) }}</span>
+               <span class="bubble limit">{{ translate({value: ceiling}) }}</span>
+               <span class="bubble">{{ translate({value: ngModel}) }}</span>'
+    link: (scope, element, attributes) ->
+        # Get references to template elements
+        [fullBar, valPtr, flrBub, ceilBub, valBub] = (angularize(e) for e in element.children())
+
+        # Scope values to watch for changes
+        watchables = ['ngModel', 'floor', 'ceiling']
+
+        boundToInputs = false
+        ngDocument = angularize document
+        unless attributes.translate
+            scope.translate = (value) -> value.value
+
+        pointerHalfWidth = barWidth = minOffset = maxOffset = minValue = maxValue = valueRange = offsetRange = undefined
+
+        dimensions = ->
+            # roundStep the initial score values
+            scope.precision ?= 0
+            scope.step ?= 1
+            scope[value] = roundStep(parseFloat(scope[value]), parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor)) for value in watchables
+
+            # Commonly used measurements
+            pointerHalfWidth = halfWidth valPtr
+            barWidth = width fullBar
+
+            minOffset = 0
+            maxOffset = barWidth - width(valPtr)
+
+            minValue = parseFloat attributes.floor
+            maxValue = parseFloat attributes.ceiling
+
+            valueRange = maxValue - minValue
+            offsetRange = maxOffset - minOffset
+
+        updateDOM = ->
+            dimensions()
+
+            # Translation functions
+            percentOffset = (offset) -> ((offset - minOffset) / offsetRange) * 100
+            percentValue = (value) -> ((value - minValue) / valueRange) * 100
+            percentToOffset = (percent) -> pixelize percent * offsetRange / 100
+
+            # Fit bubble to bar width
+            fitToBar = (element) -> offset element, pixelize(Math.min (Math.max 0, offsetLeft(element)), (barWidth - width(element)))
+
+            setPointers = ->
+                offset ceilBub, pixelize(barWidth - width(ceilBub))
+                newValue = percentValue scope.ngModel
+                offset valPtr, percentToOffset newValue
+                offset valBub, pixelize(offsetLeft(valPtr) - (halfWidth valBub) + pointerHalfWidth)
+
+            adjustBubbles = ->
+                fitToBar valBub
+
+                if gap(flrBub, valBub) < 5
+                    hide flrBub
+                else
+                    show flrBub
+
+                if gap(valBub, ceilBub) < 5
+                    hide ceilBub
+                else
+                    show ceilBub
+
+            bindToInputEvents = (pointer, ref, events) ->
+                onEnd = ->
+                    pointer.removeClass 'active'
+                    ngDocument.unbind events.move
+                    ngDocument.unbind events.end
+                    if scope.afterChange
+                      scope.afterChange()
+                onMove = (event) ->
+                    eventX = event.clientX || event.touches[0].clientX
+                    newOffset = eventX - element[0].getBoundingClientRect().left - pointerHalfWidth
+                    newOffset = Math.max(Math.min(newOffset, maxOffset), minOffset)
+                    newPercent = percentOffset newOffset
+                    newValue = minValue + (valueRange * newPercent / 100.0)
+                    newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor))
+                    scope[ref] = parseInt(newValue, 10)
+                    scope.$apply()
+                onStart = (event) ->
+                    pointer.addClass 'active'
+                    dimensions()
+                    event.stopPropagation()
+                    event.preventDefault()
+                    ngDocument.bind events.move, onMove
+                    ngDocument.bind events.end, onEnd
+                pointer.bind events.start, onStart
+
+            setBindings = ->
+                boundToInputs = true
+                bind = (method) ->
+                    bindToInputEvents valPtr, 'ngModel', inputEvents[method]
+                bind(inputMethod) for inputMethod in ['touch', 'mouse']
+
+            setPointers()
+            adjustBubbles()
+            setBindings() unless boundToInputs
+
+        $timeout updateDOM
+        scope.$watch w, updateDOM for w in watchables
+        window.addEventListener "resize", updateDOM
+        scope.$on 'edit-section-visible', updateDOM
+
+sliderRangeDirective = ($timeout) ->
+    restrict: 'EA'
+    scope:
+        floor:       '@'
+        ceiling:     '@'
+        step:        '@'
+        precision:   '@'
+        translate:   '&'
+        afterChange: '&'
         ngModelLow:  '=?'
         ngModelHigh: '=?'
     template: '<span class="bar"></span>
@@ -59,18 +177,12 @@ sliderDirective = ($timeout) ->
                <span class="bubble">{{ translate({value: ngModelHigh}) }}</span>
                <span class="bubble">{{ translate({value: ngModelLow}) }} - {{ translate({value: ngModelHigh}) }}</span>'
     link: (scope, element, attributes) ->
-
-        # This has been hacked to only work with ranges.
-        # This was done to get rid of the compile function, which is causing issues
-        # when this directive is used in a transcluded scope.
-        range = true
-
         # Get references to template elements
         [fullBar, selBar, minPtr, maxPtr, selBub,
             flrBub, ceilBub, lowBub, highBub, cmbBub] = (angularize(e) for e in element.children())
         
         # Scope values to watch for changes
-        watchables = ['ngModelLow', 'floor', 'ceiling', 'ngModelHigh']
+        watchables = ['ngModelLow', 'ngModelHigh', 'floor', 'ceiling']
 
         boundToInputs = false
         ngDocument = angularize document
@@ -167,17 +279,16 @@ sliderDirective = ($timeout) ->
                     newOffset = Math.max(Math.min(newOffset, maxOffset), minOffset)
                     newPercent = percentOffset newOffset
                     newValue = minValue + (valueRange * newPercent / 100.0)
-                    if range
-                        if ref is 'ngModelLow'
-                            if newValue > scope.ngModelHigh
-                                ref = 'ngModelHigh'
-                                minPtr.removeClass 'active'
-                                maxPtr.addClass 'active'
-                        else
-                            if newValue < scope.ngModelLow
-                                ref = 'ngModelLow'
-                                maxPtr.removeClass 'active'
-                                minPtr.addClass 'active'
+                    if ref is 'ngModelLow'
+                        if newValue > scope.ngModelHigh
+                            ref = 'ngModelHigh'
+                            minPtr.removeClass 'active'
+                            maxPtr.addClass 'active'
+                    else
+                        if newValue < scope.ngModelLow
+                            ref = 'ngModelLow'
+                            maxPtr.removeClass 'active'
+                            minPtr.addClass 'active'
                     newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor))
                     scope[ref] = parseInt(newValue, 10)
                     scope.$apply()
@@ -206,14 +317,20 @@ sliderDirective = ($timeout) ->
         window.addEventListener "resize", updateDOM
         scope.$on 'edit-section-visible', updateDOM
 
-qualifiedDirectiveDefinition = [
+qualifiedSliderDirectiveDefinition = [
     '$timeout'
     sliderDirective
+]
+
+qualifiedSliderRangeDirectiveDefinition = [
+    '$timeout'
+    sliderRangeDirective
 ]
 
 module = (window, angular) ->
     angular
         .module(MODULE_NAME, [])
-        .directive(SLIDER_TAG, qualifiedDirectiveDefinition)
+        .directive(SLIDER_RANGE_TAG, qualifiedSliderRangeDirectiveDefinition)
+        .directive(SLIDER_TAG, qualifiedSliderDirectiveDefinition)
 
 module window, window.angular
