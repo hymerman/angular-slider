@@ -46,6 +46,7 @@ sliderDirective = ($timeout) ->
         precision:   '@'
         translate:   '&'
         afterChange: '&'
+        onChange:    '&'
         ngModel:     '=?'
     template: '<span class="bar"></span>
                <span class="pointer"></span>
@@ -121,7 +122,7 @@ sliderDirective = ($timeout) ->
                     ngDocument.unbind events.move
                     ngDocument.unbind events.end
                     if scope.afterChange
-                      scope.afterChange()
+                        scope.afterChange()
                 onMove = (event) ->
                     eventX = event.clientX || event.touches[0].clientX
                     newOffset = eventX - element[0].getBoundingClientRect().left - pointerHalfWidth
@@ -131,6 +132,8 @@ sliderDirective = ($timeout) ->
                     newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor))
                     scope[ref] = parseInt(newValue, 10)
                     scope.$apply()
+                    if scope.onChange
+                        scope.onChange()
                 onStart = (event) ->
                     pointer.addClass 'active'
                     dimensions()
@@ -164,6 +167,7 @@ sliderRangeDirective = ($timeout) ->
         precision:   '@'
         translate:   '&'
         afterChange: '&'
+        onChange:    '&'
         ngModelLow:  '=?'
         ngModelHigh: '=?'
     template: '<span class="bar"></span>
@@ -272,7 +276,7 @@ sliderRangeDirective = ($timeout) ->
                     ngDocument.unbind events.move
                     ngDocument.unbind events.end
                     if scope.afterChange
-                      scope.afterChange()
+                        scope.afterChange()
                 onMove = (event) ->
                     eventX = event.clientX || event.touches[0].clientX
                     newOffset = eventX - element[0].getBoundingClientRect().left - pointerHalfWidth
@@ -292,6 +296,8 @@ sliderRangeDirective = ($timeout) ->
                     newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor))
                     scope[ref] = parseInt(newValue, 10)
                     scope.$apply()
+                    if scope.onChange
+                        scope.onChange()
                 onStart = (event) ->
                     pointer.addClass 'active'
                     dimensions()

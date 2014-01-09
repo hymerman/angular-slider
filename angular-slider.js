@@ -88,6 +88,7 @@
         precision: '@',
         translate: '&',
         afterChange: '&',
+        onChange: '&',
         ngModel: '=?'
       },
       template: '<span class="bar"></span>\
@@ -191,7 +192,10 @@
               newValue = minValue + (valueRange * newPercent / 100.0);
               newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor));
               scope[ref] = parseInt(newValue, 10);
-              return scope.$apply();
+              scope.$apply();
+              if (scope.onChange) {
+                return scope.onChange();
+              }
             };
             onStart = function(event) {
               pointer.addClass('active');
@@ -244,6 +248,7 @@
         precision: '@',
         translate: '&',
         afterChange: '&',
+        onChange: '&',
         ngModelLow: '=?',
         ngModelHigh: '=?'
       },
@@ -400,7 +405,10 @@
               }
               newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor));
               scope[ref] = parseInt(newValue, 10);
-              return scope.$apply();
+              scope.$apply();
+              if (scope.onChange) {
+                return scope.onChange();
+              }
             };
             onStart = function(event) {
               pointer.addClass('active');
