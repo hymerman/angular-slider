@@ -191,7 +191,7 @@
               newPercent = percentOffset(newOffset);
               newValue = minValue + (valueRange * newPercent / 100.0);
               newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor));
-              scope[ref] = parseInt(newValue, 10);
+              scope[ref] = newValue;
               scope.$apply();
               if (scope.onChange) {
                 return scope.onChange();
@@ -404,7 +404,7 @@
                 }
               }
               newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor));
-              scope[ref] = parseInt(newValue, 10);
+              scope[ref] = newValue;
               scope.$apply();
               if (scope.onChange) {
                 return scope.onChange();
