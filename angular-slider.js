@@ -184,16 +184,17 @@
               }
             };
             onMove = function(event) {
-              var eventX, newOffset, newPercent, newValue;
+              var eventX, newOffset, newPercent, newValue, valueHasChanged;
               eventX = event.clientX || event.touches[0].clientX;
               newOffset = eventX - element[0].getBoundingClientRect().left - pointerHalfWidth;
               newOffset = Math.max(Math.min(newOffset, maxOffset), minOffset);
               newPercent = percentOffset(newOffset);
               newValue = minValue + (valueRange * newPercent / 100.0);
               newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor));
+              valueHasChanged = scope[ref] !== newValue;
               scope[ref] = newValue;
               scope.$apply();
-              if (scope.onChange) {
+              if (valueHasChanged && scope.onChange) {
                 return scope.onChange();
               }
             };
@@ -384,7 +385,7 @@
               }
             };
             onMove = function(event) {
-              var eventX, newOffset, newPercent, newValue;
+              var eventX, newOffset, newPercent, newValue, valueHasChanged;
               eventX = event.clientX || event.touches[0].clientX;
               newOffset = eventX - element[0].getBoundingClientRect().left - pointerHalfWidth;
               newOffset = Math.max(Math.min(newOffset, maxOffset), minOffset);
@@ -404,9 +405,10 @@
                 }
               }
               newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor));
+              valueHasChanged = scope[ref] !== newValue;
               scope[ref] = newValue;
               scope.$apply();
-              if (scope.onChange) {
+              if (valueHasChanged && scope.onChange) {
                 return scope.onChange();
               }
             };

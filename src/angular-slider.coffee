@@ -130,9 +130,10 @@ sliderDirective = ($timeout) ->
                     newPercent = percentOffset newOffset
                     newValue = minValue + (valueRange * newPercent / 100.0)
                     newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor))
+                    valueHasChanged = scope[ref] != newValue
                     scope[ref] = newValue
                     scope.$apply()
-                    if scope.onChange
+                    if valueHasChanged && scope.onChange
                         scope.onChange()
                 onStart = (event) ->
                     pointer.addClass 'active'
@@ -294,9 +295,10 @@ sliderRangeDirective = ($timeout) ->
                             maxPtr.removeClass 'active'
                             minPtr.addClass 'active'
                     newValue = roundStep(newValue, parseInt(scope.precision), parseFloat(scope.step), parseFloat(scope.floor))
+                    valueHasChanged = scope[ref] != newValue
                     scope[ref] = newValue
                     scope.$apply()
-                    if scope.onChange
+                    if valueHasChanged && scope.onChange
                         scope.onChange()
                 onStart = (event) ->
                     pointer.addClass 'active'
